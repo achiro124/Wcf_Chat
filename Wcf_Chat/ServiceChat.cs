@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -10,6 +11,7 @@ namespace Wcf_Chat
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class ServiceChat : IServiceChat
     {
+        ApplicationContext db = new ApplicationContext();
         List<ServerUser> users = new List<ServerUser>();
         int nextId = 1;
         public int Connect(string name)
@@ -35,6 +37,14 @@ namespace Wcf_Chat
             }
         }
 
+     //   public void GetAllMsgs(int ToId, int fromId)
+     //   {
+     //       db.Database.EnsureCreated();
+     //       db.Msgs.Load();
+     //       var messages = db.Msgs;
+     //       users.FirstOrDefault(x => x.ID == fromId).operationContext.GetCallbackChannel<IServerChatCallback>().AllMsgsCallback(messages.Where(x => x.From == fromId && x.To == ToId).ToList());
+     //   }
+
         public void GetUsers()
         {
             List<string> names = new List<string>();
@@ -52,11 +62,22 @@ namespace Wcf_Chat
 
         public void SendMsg(string msg, int fromId, int ToId)
         {
+            //SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_sqlite3());
+          //  db.Database.EnsureCreated();
+          //  db.Msgs.Add(new PrivateMessage
+          //  {
+          //      dateTime = DateTime.Now,
+          //      From = fromId,
+          //      To = ToId,
+          //      Text= msg
+          //  });
+          //  db.SaveChanges();
+
+            string answer = DateTime.Now.ToShortTimeString();
+            answer += ": " + users.FirstOrDefault(x => x.ID == fromId).Name + " ";
+            answer += msg;
             foreach (var item in users.Where(x => x.ID == fromId || x.ID == ToId))
             {
-                string answer = DateTime.Now.ToShortTimeString();
-                answer += ": " + users.FirstOrDefault(x => x.ID == fromId).Name + " ";
-                answer += msg;
                 item.operationContext.GetCallbackChannel<IServerChatCallback>().MsgCallback(answer, fromId, ToId);
             }
         }

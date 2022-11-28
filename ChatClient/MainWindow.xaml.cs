@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,11 +9,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ChatClient.ServiceChat;
+using Wcf_Chat;
 
 namespace ChatClient
 {
@@ -127,15 +130,8 @@ namespace ChatClient
             {
                 if(ToId.ToString() == tabItems[i].Name.Remove(0,7) || fromId.ToString() == tabItems[i].Name.Remove(0, 7))
                 {
-                    if(ID == fromId)
-                    {
-                        //listBoxes[i].HorizontalContentAlignment = HorizontalAlignment.Right;
-                    }
-                    else
-                    {
-                        //listBoxes[i].HorizontalContentAlignment = HorizontalAlignment.Left;
-                    }
                     listBoxes[i].Items.Add(msg);
+                    //listBoxes[i].ScrollIntoView(listBoxes[i].Items[listBoxes[i].Items.Count - 1]);
                     break;
                 }
             }
@@ -149,6 +145,21 @@ namespace ChatClient
                 {
                     lbUsers.Items.Add(names[i]);
                     listUsers.Add(listId[i], names[i]);
+                }
+            }
+        }
+
+        public void AllMsgsCallback(PrivateMessage[] allMsgs)
+        {
+            for (int i = 0; i < tabItems.Count; i++)
+            {
+                if (toID.ToString() == tabItems[i].Name.Remove(0, 7) || ID.ToString() == tabItems[i].Name.Remove(0, 7))
+                {
+                    foreach(var item in allMsgs)
+                    {
+                        listBoxes[i].Items.Add(item.Text);
+                    }
+                    break;
                 }
             }
         }

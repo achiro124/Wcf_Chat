@@ -4,11 +4,13 @@ using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
+using Wcf_Chat;
 
 namespace ChatHost
 {
     internal class Program
     {
+        ApplicationContext db = new ApplicationContext();     
         static void Main(string[] args)
         {
             using (var host = new ServiceHost(typeof(Wcf_Chat.ServiceChat)))

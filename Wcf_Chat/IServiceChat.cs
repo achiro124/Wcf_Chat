@@ -21,6 +21,9 @@ namespace Wcf_Chat
 
         [OperationContract(IsOneWay = true)]
         void GetUsers();
+
+     //   [OperationContract(IsOneWay = true)]
+     //   void GetAllMsgs(int ToId, int fromId);
     }
 
     public interface IServerChatCallback
@@ -30,6 +33,9 @@ namespace Wcf_Chat
 
         [OperationContract(IsOneWay = true)]
         void UsersCallback(List<string> names, List<int> listId);
+
+     //   [OperationContract(IsOneWay = true)]
+     //   void AllMsgsCallback(List<PrivateMessage> allMsgs);
 
     }
 }
