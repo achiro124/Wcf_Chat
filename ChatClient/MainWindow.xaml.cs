@@ -24,9 +24,12 @@ namespace ChatClient
     /// </summary>
     public partial class MainWindow : Window, IServiceChatCallback
     {
-        private List<TabItem> tabItems = new List<TabItem>();
-        private List<ListBox> listBoxes = new List<ListBox>();
-        private List<TextBox> textBoxes = new List<TextBox>();
+        //private  List<TabItem> tabItems = new List<TabItem>();
+        private Dictionary<TabItem, int> tabItems = new Dictionary<TabItem, int>();
+       // private List<ListBox> listBoxes = new List<ListBox>();
+        private Dictionary<ListBox, int> listBoxes = new Dictionary<ListBox, int>();
+        //private List<TextBox> textBoxes = new List<TextBox>();
+        private Dictionary<TextBox, int> textBoxes = new Dictionary<TextBox, int>();
         private Dictionary<int,string> listUsers = new Dictionary<int,string>();
 
         ServiceChatClient client;
@@ -42,9 +45,9 @@ namespace ChatClient
         {
             foreach (var item in tabItems)
             {
-                if (item.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
+                if (item.Key.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
                 {
-                    tcChat.SelectedIndex = tabItems.IndexOf(item) + 1;
+                    tcChat.SelectedIndex = tabItems.ToList().IndexOf(item) + 1;
                    // lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
                    // lbUsers.SelectedIndex = -1;
                    // lbUsers.SelectionChanged += lbUsers_SelectionChanged;
@@ -68,8 +71,13 @@ namespace ChatClient
             Grid.SetRow(chatbox, 0);
             Grid.SetRow(textBox, 1);
 
-            listBoxes.Add(chatbox);
-            textBoxes.Add(textBox);
+            toID = listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key;
+
+
+            listBoxes[chatbox] = toID;
+            textBoxes[textBox] = toID;
+            //listBoxes.Add(chatbox);
+            //textBoxes.Add(textBox);
 
             TabItem tabItem = new TabItem
             {
@@ -79,12 +87,13 @@ namespace ChatClient
                 Content = grid,
                 Name = "tabItem" + listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key.ToString()
             };
-            tabItems.Add(tabItem);
+            //tabItems.Add(tabItem);
+            tabItems[tabItem] = toID;
             tcChat.Items.Add(tabItem);
             tcChat.SelectedIndex = tcChat.Items.Count - 1;
 
 
-            toID = listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key;
+            
          //  lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
          //  lbUsers.SelectedIndex = -1;
          //  lbUsers.SelectionChanged += lbUsers_SelectionChanged;
@@ -102,13 +111,13 @@ namespace ChatClient
             {
                 foreach (var item in textBoxes)
                 {
-                    if (textBox.Name == item.Name)
+                    if (textBox.Name == item.Key.Name)
                     {
 
                         if (client != null)
                         {
-                            client.SendMsg(item.Text, ID, toID);
-                            item.Text = string.Empty;
+                            client.SendMsg(item.Key.Text, ID, toID);
+                            item.Key.Text = string.Empty;
                         }
 
                     }
@@ -126,15 +135,23 @@ namespace ChatClient
 
         public void MsgCallback(string msg, int fromId, int ToId)
         {
-            for(int i = 0; i < tabItems.Count; i++)
+            foreach(var item in tabItems)
             {
-                if(ToId.ToString() == tabItems[i].Name.Remove(0,7) || fromId.ToString() == tabItems[i].Name.Remove(0, 7))
+                if(ToId == tabItems[item.Key] || fromId == tabItems[item.Key])
                 {
-                    listBoxes[i].Items.Add(msg);
-                    //listBoxes[i].ScrollIntoView(listBoxes[i].Items[listBoxes[i].Items.Count - 1]);
+                    listBoxes.FirstOrDefault(x => x.Value == ToId || x.Value == fromId).Key.Items.Add(msg);
                     break;
                 }
             }
+          //  for(int i = 0; i < tabItems.Count; i++)
+          //  {
+          //      if(ToId == tabItems[i] || fromId.ToString() == tabItems[i].Name.Remove(0, 7))
+          //      {
+          //          listBoxes[i].Items.Add(msg);
+          //          //listBoxes[i].ScrollIntoView(listBoxes[i].Items[listBoxes[i].Items.Count - 1]);
+          //          break;
+          //      }
+          //  }
         }
 
         public void UsersCallback(string[] names, int[] listId)
@@ -149,19 +166,29 @@ namespace ChatClient
             }
         }
 
-        public void AllMsgsCallback(PrivateMessage[] allMsgs)
+        private void tcChat_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            for (int i = 0; i < tabItems.Count; i++)
+            var item = sender as TabControl; 
+            if (item != null && item.SelectedIndex != 0) 
             {
-                if (toID.ToString() == tabItems[i].Name.Remove(0, 7) || ID.ToString() == tabItems[i].Name.Remove(0, 7))
-                {
-                    foreach(var item in allMsgs)
-                    {
-                        listBoxes[i].Items.Add(item.Text);
-                    }
-                    break;
-                }
+                toID =  tabItems.Values.ToList()[item.SelectedIndex - 1];
             }
+             
         }
+
+        //  public void AllMsgsCallback(PrivateMessage[] allMsgs)
+        //  {
+        //      for (int i = 0; i < tabItems.Count; i++)
+        //      {
+        //          if (toID.ToString() == tabItems[i].Name.Remove(0, 7) || ID.ToString() == tabItems[i].Name.Remove(0, 7))
+        //          {
+        //              foreach(var item in allMsgs)
+        //              {
+        //                  listBoxes[i].Items.Add(item.Text);
+        //              }
+        //              break;
+        //          }
+        //      }
+        //  }
     }
 }

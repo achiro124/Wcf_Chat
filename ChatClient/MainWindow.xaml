@@ -12,7 +12,7 @@
             <ColumnDefinition Width="97*"/>
             <ColumnDefinition Width="142*"/>
         </Grid.ColumnDefinitions>
-        <TabControl x:Name="tcChat" Grid.ColumnSpan="3">
+        <TabControl x:Name="tcChat" Grid.ColumnSpan="3" SelectionChanged="tcChat_SelectionChanged" >
             <TabItem Header="Чаты" Height="30" Width="80">
                 <TabItem.Content>
                     <Grid>
