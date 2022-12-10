@@ -5,13 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatClient"
         mc:Ignorable="d"
-        Title="Вход" Height="342" Width="417">
+        Title="Вход" Height="342" Width="417" Loaded="Window_Loaded">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0*"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
         <Button x:Name="bConnDicon" Content="Connect" Click="Button_Click" HorizontalAlignment="Center" Height="48" Margin="0,207,0,0" VerticalAlignment="Top" Width="174" Grid.Column="1"/>
         <TextBox x:Name="tbUserName" Height="48" Margin="102,116,82,0" TextWrapping="Wrap" Text="Имя юзера" VerticalAlignment="Top" Grid.Column="1"/>
+        <Label x:Name="msgErr" Content="" HorizontalAlignment="Center" Margin="0,169,0,0" VerticalAlignment="Top" Width="253" Height="33"/>
     </Grid>
 </Window>
