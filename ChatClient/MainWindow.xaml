@@ -16,13 +16,17 @@
             <TabItem Header="Чаты" Height="30" Width="80">
                 <TabItem.Content>
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="53*"/>
+                            <ColumnDefinition Width="513*"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="0.2*"/>
                         </Grid.RowDefinitions>
-                        <ListBox x:Name="lbUsers" Grid.Row="0" SelectionChanged="lbUsers_SelectionChanged" FontSize="20"/>
-                        <Button x:Name="bDisconnect" Content="Выйти" Grid.Row="1" Height="50" Width="100" VerticalAlignment="Stretch"/>
-                        <TextBlock x:Name="tbName" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Height="34" Width="178"/>
+                        <ListBox x:Name="lbUsers" Grid.Row="0" SelectionChanged="lbUsers_SelectionChanged" FontSize="20" Grid.ColumnSpan="2"/>
+                        <Button x:Name="bDisconnect" Content="Выйти" Grid.Row="1" Height="50" Width="100" Click="bDisconnect_Click" Grid.Column="1" Margin="180,6,233,6"/>
+                        <TextBlock x:Name="tbName" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Height="34" Width="178" Grid.ColumnSpan="2"/>
                     </Grid>
                 </TabItem.Content>
             </TabItem>

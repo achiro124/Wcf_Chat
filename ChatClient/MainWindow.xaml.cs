@@ -24,11 +24,9 @@ namespace ChatClient
     /// </summary>
     public partial class MainWindow : Window, IServiceChatCallback
     {
-        //private  List<TabItem> tabItems = new List<TabItem>();
+
         private Dictionary<TabItem, int> tabItems = new Dictionary<TabItem, int>();
-       // private List<ListBox> listBoxes = new List<ListBox>();
         private Dictionary<ListBox, int> listBoxes = new Dictionary<ListBox, int>();
-        //private List<TextBox> textBoxes = new List<TextBox>();
         private Dictionary<TextBox, int> textBoxes = new Dictionary<TextBox, int>();
         private Dictionary<int,string> listUsers = new Dictionary<int,string>();
 
@@ -40,6 +38,7 @@ namespace ChatClient
         {
             InitializeComponent();
             this.name = name;
+            //this.ID = ID;
         }
         private void lbUsers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -48,9 +47,9 @@ namespace ChatClient
                 if (item.Key.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
                 {
                     tcChat.SelectedIndex = tabItems.ToList().IndexOf(item) + 1;
-                   // lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-                   // lbUsers.SelectedIndex = -1;
-                   // lbUsers.SelectionChanged += lbUsers_SelectionChanged;
+                    lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
+                    lbUsers.SelectedIndex = -1;
+                    lbUsers.SelectionChanged += lbUsers_SelectionChanged;
                     return;
                 }
 
@@ -76,8 +75,6 @@ namespace ChatClient
 
             listBoxes[chatbox] = toID;
             textBoxes[textBox] = toID;
-            //listBoxes.Add(chatbox);
-            //textBoxes.Add(textBox);
 
             TabItem tabItem = new TabItem
             {
@@ -87,16 +84,15 @@ namespace ChatClient
                 Content = grid,
                 Name = "tabItem" + listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key.ToString()
             };
-            //tabItems.Add(tabItem);
             tabItems[tabItem] = toID;
             tcChat.Items.Add(tabItem);
             tcChat.SelectedIndex = tcChat.Items.Count - 1;
 
 
             
-         //  lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-         //  lbUsers.SelectedIndex = -1;
-         //  lbUsers.SelectionChanged += lbUsers_SelectionChanged;
+            lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
+            lbUsers.SelectedIndex = -1;
+            lbUsers.SelectionChanged += lbUsers_SelectionChanged;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -139,19 +135,20 @@ namespace ChatClient
             {
                 if(ToId == tabItems[item.Key] || fromId == tabItems[item.Key])
                 {
+                    if(fromId == ID)
+                    {
+                        var s = msg.Split(' ');
+                        s[1] = " Вы: ";
+                        msg = "";
+                        foreach(var item1 in s)
+                        {
+                            msg += item1;
+                        }
+                    }
                     listBoxes.FirstOrDefault(x => x.Value == ToId || x.Value == fromId).Key.Items.Add(msg);
                     break;
                 }
             }
-          //  for(int i = 0; i < tabItems.Count; i++)
-          //  {
-          //      if(ToId == tabItems[i] || fromId.ToString() == tabItems[i].Name.Remove(0, 7))
-          //      {
-          //          listBoxes[i].Items.Add(msg);
-          //          //listBoxes[i].ScrollIntoView(listBoxes[i].Items[listBoxes[i].Items.Count - 1]);
-          //          break;
-          //      }
-          //  }
         }
 
         public void UsersCallback(string[] names, int[] listId)
@@ -174,6 +171,40 @@ namespace ChatClient
                 toID =  tabItems.Values.ToList()[item.SelectedIndex - 1];
             }
              
+        }
+
+        private void bDisconnect_Click(object sender, RoutedEventArgs e)
+        {
+            client.Disconnect(ID);
+        }
+
+        public void DisconnectCallback(int id)
+        {
+            if(id == ID)
+            {
+                Chat chat = new Chat();
+                chat.Show();
+                this.Close();
+            }
+            else
+            {
+
+                if(listUsers.FirstOrDefault(x => x.Key == id).Value != null)
+                    lbUsers.Items.Remove(listUsers.FirstOrDefault(x => x.Key == id).Value);
+                if (tabItems.FirstOrDefault(x => x.Value == id).Key != null)
+                {
+                    tcChat.Items.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
+                    tcChat.SelectedIndex = 0;
+                }
+                if (tabItems.FirstOrDefault(x => x.Value == id).Key != null)
+                    tabItems.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
+                if(listBoxes.FirstOrDefault(x => x.Value == id).Key != null)
+                    listBoxes.Remove(listBoxes.FirstOrDefault(x => x.Value == id).Key);
+                if(textBoxes.FirstOrDefault(x => x.Value == id).Key != null)
+                    textBoxes.Remove(textBoxes.FirstOrDefault(x=>x.Value == id).Key);
+                listUsers.Remove(id);
+                
+            }
         }
 
         //  public void AllMsgsCallback(PrivateMessage[] allMsgs)

@@ -16,6 +16,13 @@ namespace Wcf_Chat
         int nextId = 1;
         public int Connect(string name)
         {
+            foreach(var user1 in users)
+            {
+                if (user1.Name == name)
+                {
+                    return -1;
+                }
+            }
             ServerUser user = new ServerUser
             {
                 ID = nextId,
@@ -33,8 +40,13 @@ namespace Wcf_Chat
             var user = users.FirstOrDefault(x => x.ID == id);
             if (user != null)
             {
+                foreach (var item in users)
+                {
+                    item.operationContext.GetCallbackChannel<IServerChatCallback>().DisconnectCallback(id);
+                }
                 users.Remove(user);
             }
+
         }
 
      //   public void GetAllMsgs(int ToId, int fromId)
@@ -73,8 +85,8 @@ namespace Wcf_Chat
           //  });
           //  db.SaveChanges();
 
-            string answer = DateTime.Now.ToShortTimeString();
-            answer += ": " + users.FirstOrDefault(x => x.ID == fromId).Name + " ";
+            string answer = DateTime.Now.ToShortTimeString() + " ";
+            answer += users.FirstOrDefault(x => x.ID == fromId).Name + ": ";
             answer += msg;
             foreach (var item in users.Where(x => x.ID == fromId || x.ID == ToId))
             {
