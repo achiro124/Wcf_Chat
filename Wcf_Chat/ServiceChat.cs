@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.ServiceModel;
 using System.Text;
 
@@ -12,17 +13,18 @@ namespace Wcf_Chat
     public class ServiceChat : IServiceChat
     {
 
+        SqlConnection connection;
+        SqlCommand sqlCommand;
+        SqlConnectionStringBuilder connectionStringBuilder;
+        List<ServerUser> users = new List<ServerUser>();
+        int nextId = 1;
         public ServiceChat() 
         {
             ConnectToDb();
+            ConnectToUserBd();
         }
 
-        SqlConnection connection;
-        SqlCommand sqlCommand;
-
-        SqlConnectionStringBuilder connectionStringBuilder;
-
-        void ConnectToDb()
+        private void ConnectToDb()
         {
             connectionStringBuilder = new SqlConnectionStringBuilder();
             connectionStringBuilder.DataSource = "DESKTOP-FGS36Q5";
@@ -38,40 +40,113 @@ namespace Wcf_Chat
             connection = new SqlConnection(connectionStringBuilder.ToString());
         }
 
-        List<ServerUser> users = new List<ServerUser>();
-        int nextId = 1;
-        public int Connect(string name)
+        private void ConnectToUserBd()
         {
-            foreach(var user1 in users)
+            try
             {
-                if (user1.Name == name)
+                sqlCommand = connection.CreateCommand();
+                sqlCommand.CommandText = "SELECT * FROM Users";
+                sqlCommand.CommandType = System.Data.CommandType.Text;
+
+                connection.Open();
+                SqlDataReader reader = sqlCommand.ExecuteReader();
+                while (reader.Read())
                 {
-                    return -1;
+                    users.Add(new ServerUser
+                    {
+                        ID = Convert.ToInt32(reader[0]),
+                        Login = reader[1].ToString(),
+                    });
+                    nextId = Convert.ToInt32(reader[0]) + 1;
                 }
             }
-            ServerUser user = new ServerUser
+            catch (Exception)
             {
-                ID = nextId,
-                Name = name,
-                operationContext = OperationContext.Current
-            };
-            nextId++;
-            
-            users.Add(user);
-            return user.ID;
+
+                throw;
+            }
+            finally
+            {
+                if (connection != null)
+                {
+                    connection.Close();
+                }
+            }
+        }
+
+
+        public int Connect(string name)
+        {
+            int id = -1;
+            ServerUser serverUser = users.FirstOrDefault(x => x.Login == name);
+            if(serverUser != null && serverUser.Active)
+            {
+                return id;
+            }
+            else
+            {
+                if(serverUser != null)
+                {
+                    id = serverUser.ID;
+                    serverUser.Active = true;
+                    serverUser.operationContext = OperationContext.Current;
+                }
+                else
+                {
+                    try
+                    {
+                        serverUser = new ServerUser
+                        {
+                            ID = nextId,
+                            Login = name,
+                            Active = true,
+                            operationContext = OperationContext.Current
+                        };
+                        id = serverUser.ID;
+                        users.Add(serverUser);
+                        nextId++;
+
+                        sqlCommand = connection.CreateCommand();
+                        sqlCommand.CommandText = "INSERT INTO Users VALUES(@Id, @Login)";
+                        sqlCommand.Parameters.AddWithValue("Id", serverUser.ID);
+                        sqlCommand.Parameters.AddWithValue("Login", serverUser.Login);
+                        sqlCommand.CommandType = System.Data.CommandType.Text;
+                        connection.Open();
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        if (connection != null)
+                        {
+                            connection.Close();
+                        }
+                    }
+
+                }
+
+            }
+
+            return id;
         }
 
         public void Disconnect(int id)
         {
             var user = users.FirstOrDefault(x => x.ID == id);
-            if (user != null)
-            {
-                foreach (var item in users)
-                {
-                    item.operationContext.GetCallbackChannel<IServerChatCallback>().DisconnectCallback(id);
-                }
-                users.Remove(user);
-            }
+            user.Active = false;
+           // if (user != null)
+           // {
+           //     foreach (var item in users)
+           //     {
+           //         //item.operationContext = OperationContext.Current;
+           //         //item.operationContext.GetCallbackChannel<IServerChatCallback>().DisconnectCallback(id);
+           //
+           //     }
+           //     users.Remove(user);
+           // }
 
         }
 
@@ -81,7 +156,7 @@ namespace Wcf_Chat
             try
             {
                 sqlCommand = connection.CreateCommand();
-                sqlCommand.CommandText = "SELECT Msg FROM PrivateMessage WHERE ToId = @ToId AND FromId = @FromId OR ToId = @FromId AND FromId = @ToId";
+                sqlCommand.CommandText = "SELECT Msg FROM PrivateMessage1 WHERE ToId = @ToId AND FromId = @FromId OR ToId = @FromId AND FromId = @ToId ORDER BY DateTime ASC";
                 sqlCommand.Parameters.AddWithValue("ToId", ToId);
                 sqlCommand.Parameters.AddWithValue("FromId", fromId);
                 sqlCommand.CommandType = System.Data.CommandType.Text;
@@ -117,11 +192,12 @@ namespace Wcf_Chat
             List<int> listId = new List<int>();
             foreach (var item in users)
             {
-                names.Add(item.Name);
+                names.Add(item.Login);
                 listId.Add(item.ID);
             }
-            foreach (var item in users)
+            foreach (var item in users.Where(x => x.Active))
             {
+                //item.operationContext = OperationContext.Current;
                 item.operationContext.GetCallbackChannel<IServerChatCallback>().UsersCallback(names, listId);
             }
 
@@ -134,11 +210,11 @@ namespace Wcf_Chat
             {
                 sqlCommand = connection.CreateCommand();
                 string answer = DateTime.Now.ToShortTimeString() + " ";
-                answer += users.FirstOrDefault(x => x.ID == privateMessage.FromId).Name + ": ";
+                answer += users.FirstOrDefault(x => x.ID == privateMessage.FromId).Login + ": ";
                 answer += privateMessage.Msg;
                 privateMessage.Msg = answer;
 
-                sqlCommand.CommandText = "INSERT INTO PrivateMessage VALUES(@Id, @FromId, @ToId, @Msg, @DateTime)";
+                sqlCommand.CommandText = "INSERT INTO PrivateMessage1 VALUES(@Id, @FromId, @ToId, @Msg, @DateTime)";
                 sqlCommand.Parameters.AddWithValue("Id", privateMessage.ID);
                 sqlCommand.Parameters.AddWithValue("FromId", privateMessage.FromId);
                 sqlCommand.Parameters.AddWithValue("ToId", privateMessage.ToId);
@@ -149,8 +225,9 @@ namespace Wcf_Chat
                 connection.Open();
 
 
-                foreach (var item in users.Where(x => x.ID == privateMessage.FromId || x.ID == privateMessage.ToId))
+                foreach (var item in users.Where(x => x.ID == privateMessage.FromId && x.Active || x.ID == privateMessage.ToId && x.Active))
                 {
+                    //item.operationContext = OperationContext.Current;
                     item.operationContext.GetCallbackChannel<IServerChatCallback>().MsgCallback(privateMessage);
                 }
 

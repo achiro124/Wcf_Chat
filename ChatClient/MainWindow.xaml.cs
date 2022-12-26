@@ -130,6 +130,12 @@ namespace ChatClient
         {
             client = new ServiceChatClient(new System.ServiceModel.InstanceContext(this));
             ID = client.Connect(name);
+            if(ID == -1)
+            {
+                Chat input = new Chat();
+                input.Show();
+                this.Close();
+            }
             client.GetUsers();
             tbName.Text = "Login: " + name;
         }
