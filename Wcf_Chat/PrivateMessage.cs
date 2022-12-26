@@ -10,24 +10,20 @@ namespace Wcf_Chat
     [DataContract]
     public class PrivateMessage
     {
-        private static int num = 0000;
-
         [DataMember]
-        public int ID { get; private set; }
+        public string ID { get; private set; }
         [DataMember]
-        public int From { get; set; }
+        public int FromId { get; set; }
         [DataMember]
-        public int To { get; set; }
+        public int ToId { get; set; }
         [DataMember]
-        public string Text { get; set; }
+        public string Msg { get; set; }
         [DataMember]
         public DateTime dateTime { get; set; }
 
         public PrivateMessage()
         {
-            ID = num;
-            num++;
+            ID = Guid.NewGuid().ToString();
         }
-
     }
 }

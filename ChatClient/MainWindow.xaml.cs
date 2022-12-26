@@ -47,9 +47,9 @@ namespace ChatClient
                 if (item.Key.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
                 {
                     tcChat.SelectedIndex = tabItems.ToList().IndexOf(item) + 1;
-                    lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-                    lbUsers.SelectedIndex = -1;
-                    lbUsers.SelectionChanged += lbUsers_SelectionChanged;
+                  // lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
+                  // lbUsers.SelectedIndex = -1;
+                  // lbUsers.SelectionChanged += lbUsers_SelectionChanged;
                     return;
                 }
 
@@ -88,11 +88,11 @@ namespace ChatClient
             tcChat.Items.Add(tabItem);
             tcChat.SelectedIndex = tcChat.Items.Count - 1;
 
+            client.GetAllMsgs(toID, ID);
 
-            
-            lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-            lbUsers.SelectedIndex = -1;
-            lbUsers.SelectionChanged += lbUsers_SelectionChanged;
+            //  lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
+            //  lbUsers.SelectedIndex = -1;
+            //  lbUsers.SelectionChanged += lbUsers_SelectionChanged;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -112,7 +112,12 @@ namespace ChatClient
 
                         if (client != null)
                         {
-                            client.SendMsg(item.Key.Text, ID, toID);
+                            PrivateMessage privateMessage = new PrivateMessage();
+                            privateMessage.FromId = ID;
+                            privateMessage.ToId = toID;
+                            privateMessage.dateTime = DateTime.Now;
+                            privateMessage.Msg = item.Key.Text;
+                            client.SendMsg(privateMessage);
                             item.Key.Text = string.Empty;
                         }
 
@@ -129,23 +134,24 @@ namespace ChatClient
             tbName.Text = "Login: " + name;
         }
 
-        public void MsgCallback(string msg, int fromId, int ToId)
+        public void MsgCallback(PrivateMessage privateMessage)
         {
             foreach(var item in tabItems)
             {
-                if(ToId == tabItems[item.Key] || fromId == tabItems[item.Key])
+                if(privateMessage.ToId == tabItems[item.Key] || privateMessage.FromId == tabItems[item.Key])
                 {
-                    if(fromId == ID)
+                    string msg = privateMessage.Msg;
+                    if (privateMessage.FromId == ID)
                     {
                         var s = msg.Split(' ');
-                        s[1] = " Вы: ";
+                        s[1] = " Вы:";
                         msg = "";
                         foreach(var item1 in s)
                         {
-                            msg += item1;
+                            msg += item1 + " ";
                         }
                     }
-                    listBoxes.FirstOrDefault(x => x.Value == ToId || x.Value == fromId).Key.Items.Add(msg);
+                    listBoxes.FirstOrDefault(x => x.Value == privateMessage.ToId || x.Value == privateMessage.FromId).Key.Items.Add(msg);
                     break;
                 }
             }
@@ -207,19 +213,22 @@ namespace ChatClient
             }
         }
 
-        //  public void AllMsgsCallback(PrivateMessage[] allMsgs)
-        //  {
-        //      for (int i = 0; i < tabItems.Count; i++)
-        //      {
-        //          if (toID.ToString() == tabItems[i].Name.Remove(0, 7) || ID.ToString() == tabItems[i].Name.Remove(0, 7))
-        //          {
-        //              foreach(var item in allMsgs)
-        //              {
-        //                  listBoxes[i].Items.Add(item.Text);
-        //              }
-        //              break;
-        //          }
-        //      }
-        //  }
+         public void AllMsgsCallback(string[] allMsgs)
+         {
+
+          //  foreach(var tab in tabItems)
+          //  {
+          //      if(privateMessage.To == tabItems[item.Key] || privateMessage.From == tabItems[item.Key])
+
+          //      {
+          if(allMsgs.Length == 0) return;
+                    foreach (var item in allMsgs)
+                    {
+                        listBoxes.FirstOrDefault(x => x.Value == toID).Key.Items.Add(item);
+                    }
+         //       }
+          //  }
+
+         }
     }
 }

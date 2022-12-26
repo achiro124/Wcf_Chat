@@ -33,7 +33,8 @@
     <xsd:schema targetNamespace="http://tempuri.org/Imports">
       <xsd:import schemaLocation="http://localhost:8301/?xsd=xsd0" namespace="http://tempuri.org/" />
       <xsd:import schemaLocation="http://localhost:8301/?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-      <xsd:import schemaLocation="http://localhost:8301/?xsd=xsd2" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+      <xsd:import schemaLocation="http://localhost:8301/?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/Wcf_Chat" />
+      <xsd:import schemaLocation="http://localhost:8301/?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="IServiceChat_Connect_InputMessage">
@@ -51,6 +52,9 @@
   <wsdl:message name="IServiceChat_GetUsers_InputMessage">
     <wsdl:part name="parameters" element="tns:GetUsers" />
   </wsdl:message>
+  <wsdl:message name="IServiceChat_GetAllMsgs_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetAllMsgs" />
+  </wsdl:message>
   <wsdl:message name="IServiceChat_MsgCallback_OutputCallbackMessage">
     <wsdl:part name="parameters" element="tns:MsgCallback" />
   </wsdl:message>
@@ -59,6 +63,9 @@
   </wsdl:message>
   <wsdl:message name="IServiceChat_DisconnectCallback_OutputCallbackMessage">
     <wsdl:part name="parameters" element="tns:DisconnectCallback" />
+  </wsdl:message>
+  <wsdl:message name="IServiceChat_AllMsgsCallback_OutputCallbackMessage">
+    <wsdl:part name="parameters" element="tns:AllMsgsCallback" />
   </wsdl:message>
   <wsdl:portType name="IServiceChat">
     <wsdl:operation name="Connect">
@@ -74,6 +81,9 @@
     <wsdl:operation name="GetUsers">
       <wsdl:input wsaw:Action="http://tempuri.org/IServiceChat/GetUsers" message="tns:IServiceChat_GetUsers_InputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="GetAllMsgs">
+      <wsdl:input wsaw:Action="http://tempuri.org/IServiceChat/GetAllMsgs" message="tns:IServiceChat_GetAllMsgs_InputMessage" />
+    </wsdl:operation>
     <wsdl:operation name="MsgCallback">
       <wsdl:output wsaw:Action="http://tempuri.org/IServiceChat/MsgCallback" message="tns:IServiceChat_MsgCallback_OutputCallbackMessage" />
     </wsdl:operation>
@@ -82,6 +92,9 @@
     </wsdl:operation>
     <wsdl:operation name="DisconnectCallback">
       <wsdl:output wsaw:Action="http://tempuri.org/IServiceChat/DisconnectCallback" message="tns:IServiceChat_DisconnectCallback_OutputCallbackMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="AllMsgsCallback">
+      <wsdl:output wsaw:Action="http://tempuri.org/IServiceChat/AllMsgsCallback" message="tns:IServiceChat_AllMsgsCallback_OutputCallbackMessage" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="NetTcpBinding_IServiceChat" type="tns:IServiceChat">
@@ -114,6 +127,12 @@
         <soap12:body use="literal" />
       </wsdl:input>
     </wsdl:operation>
+    <wsdl:operation name="GetAllMsgs">
+      <soap12:operation soapAction="http://tempuri.org/IServiceChat/GetAllMsgs" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+    </wsdl:operation>
     <wsdl:operation name="MsgCallback">
       <soap12:operation soapAction="http://tempuri.org/IServiceChat/MsgCallback" style="document" />
       <wsdl:output>
@@ -128,6 +147,12 @@
     </wsdl:operation>
     <wsdl:operation name="DisconnectCallback">
       <soap12:operation soapAction="http://tempuri.org/IServiceChat/DisconnectCallback" style="document" />
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AllMsgsCallback">
+      <soap12:operation soapAction="http://tempuri.org/IServiceChat/AllMsgsCallback" style="document" />
       <wsdl:output>
         <soap12:body use="literal" />
       </wsdl:output>

@@ -17,27 +17,27 @@ namespace Wcf_Chat
         void Disconnect(int id);
 
         [OperationContract(IsOneWay = true)]
-        void SendMsg(string msg, int fromId,int ToId);
+        void SendMsg(PrivateMessage privateMessage);
 
         [OperationContract(IsOneWay = true)]
         void GetUsers();
 
-     //   [OperationContract(IsOneWay = true)]
-     //   void GetAllMsgs(int ToId, int fromId);
+        [OperationContract(IsOneWay = true)]
+        void GetAllMsgs(int ToId, int fromId);
     }
 
     public interface IServerChatCallback
     {
         [OperationContract(IsOneWay = true)]
-        void MsgCallback(string msg,int fromId, int ToId);
+        void MsgCallback(PrivateMessage privateMessage);
 
         [OperationContract(IsOneWay = true)]
         void UsersCallback(List<string> names, List<int> listId);
         [OperationContract(IsOneWay = true)]
         void DisconnectCallback(int id);
 
-     //   [OperationContract(IsOneWay = true)]
-     //   void AllMsgsCallback(List<PrivateMessage> allMsgs);
+        [OperationContract(IsOneWay = true)]
+        void AllMsgsCallback(List<string> allMsgs);
 
     }
 }

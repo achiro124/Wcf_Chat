@@ -10,7 +10,6 @@ namespace ChatHost
 {
     internal class Program
     {
-        ApplicationContext db = new ApplicationContext();     
         static void Main(string[] args)
         {
             using (var host = new ServiceHost(typeof(Wcf_Chat.ServiceChat)))
