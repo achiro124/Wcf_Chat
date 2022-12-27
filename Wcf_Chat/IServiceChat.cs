@@ -13,7 +13,7 @@ namespace Wcf_Chat
         [OperationContract]
         int Connect(string name);
 
-        [OperationContract(IsOneWay = true)]
+        [OperationContract(IsOneWay = false)]
         void Disconnect(int id);
 
         [OperationContract(IsOneWay = true)]
@@ -33,11 +33,9 @@ namespace Wcf_Chat
 
         [OperationContract(IsOneWay = true)]
         void UsersCallback(List<string> names, List<int> listId);
-        [OperationContract(IsOneWay = true)]
-        void DisconnectCallback(int id);
 
         [OperationContract(IsOneWay = true)]
-        void AllMsgsCallback(List<string> allMsgs);
+        void AllMsgsCallback(List<PrivateMessage> allMsgs);
 
     }
 }

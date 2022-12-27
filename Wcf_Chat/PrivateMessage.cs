@@ -25,5 +25,10 @@ namespace Wcf_Chat
         {
             ID = Guid.NewGuid().ToString();
         }
+
+        public PrivateMessage(string Id)
+        {
+            ID = Id;
+        }
     }
 }

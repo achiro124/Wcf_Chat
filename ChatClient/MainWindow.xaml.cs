@@ -29,6 +29,7 @@ namespace ChatClient
         private Dictionary<ListBox, int> listBoxes = new Dictionary<ListBox, int>();
         private Dictionary<TextBox, int> textBoxes = new Dictionary<TextBox, int>();
         private Dictionary<int,string> listUsers = new Dictionary<int,string>();
+        private Dictionary<Button, int> listButtons = new Dictionary<Button, int>();
 
         ServiceChatClient client;
         int ID;
@@ -38,7 +39,6 @@ namespace ChatClient
         {
             InitializeComponent();
             this.name = name;
-            //this.ID = ID;
         }
         private void lbUsers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -54,40 +54,61 @@ namespace ChatClient
                 }
 
             }
+            toID = listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key;
+
             ListBox chatbox = new ListBox();
             TextBox textBox = new TextBox()
             {
-                Name = "tb" + listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key.ToString()
+                Name = "tb" + toID.ToString()
             };
             textBox.KeyDown += tbMessage_KeyDown;
 
             Grid grid = new Grid();
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(0.3, GridUnitType.Star) });
-
             grid.Children.Add(chatbox);
             grid.Children.Add(textBox);
             Grid.SetRow(chatbox, 0);
             Grid.SetRow(textBox, 1);
 
-            toID = listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key;
+            
 
 
             listBoxes[chatbox] = toID;
             textBoxes[textBox] = toID;
 
+
+            TextBlock textBlock = new TextBlock();
+            textBlock.Text = lbUsers.Items[lbUsers.SelectedIndex].ToString();
+            Button btclose = new Button();
+            btclose.Content = "X";
+            btclose.Margin = new Thickness(30,0,0,0);
+            btclose.Click += Click_Butt_CloseTabItem;
+            listButtons[btclose] = toID;
+
+            Grid grid2 = new Grid();
+            grid2.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid2.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.3, GridUnitType.Star) });
+
+            grid2.Children.Add(textBlock);
+            grid2.Children.Add(btclose);
+            Grid.SetColumn(textBlock, 0);
+            Grid.SetColumn(btclose, 1);
+
             TabItem tabItem = new TabItem
             {
-                Header = lbUsers.Items[lbUsers.SelectedIndex].ToString(),
+                Header = grid2,
                 Height = 30,
                 MinWidth = 80,
                 Content = grid,
-                Name = "tabItem" + listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key.ToString()
+                Name = "tabItem" + toID.ToString()
             };
             tabItems[tabItem] = toID;
             tcChat.Items.Add(tabItem);
             tcChat.SelectedIndex = tcChat.Items.Count - 1;
 
+
+            
             client.GetAllMsgs(toID, ID);
 
             //  lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
@@ -98,6 +119,16 @@ namespace ChatClient
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             client.Disconnect(ID);
+        }
+
+        private void Click_Butt_CloseTabItem(object sender, RoutedEventArgs e)
+        {
+          //  Button button= sender as Button;
+          //  int id = 0;
+          //  foreach(var bt in listButtons.Keys)
+          //  {
+          //
+          //  }
         }
 
         private void tbMessage_KeyDown(object sender, KeyEventArgs e)
@@ -150,7 +181,7 @@ namespace ChatClient
                     if (privateMessage.FromId == ID)
                     {
                         var s = msg.Split(' ');
-                        s[1] = " Вы:";
+                        s[1] = "Вы:";
                         msg = "";
                         foreach(var item1 in s)
                         {
@@ -188,53 +219,31 @@ namespace ChatClient
         private void bDisconnect_Click(object sender, RoutedEventArgs e)
         {
             client.Disconnect(ID);
+            Chat chat = new Chat();
+            chat.Show();
+            this.Close();
         }
 
-        public void DisconnectCallback(int id)
+        public void AllMsgsCallback(PrivateMessage[] allMsgs)
         {
-            if(id == ID)
-            {
-                Chat chat = new Chat();
-                chat.Show();
-                this.Close();
-            }
-            else
-            {
+            if (allMsgs.Length == 0)
+                return;
 
-                if(listUsers.FirstOrDefault(x => x.Key == id).Value != null)
-                    lbUsers.Items.Remove(listUsers.FirstOrDefault(x => x.Key == id).Value);
-                if (tabItems.FirstOrDefault(x => x.Value == id).Key != null)
+            foreach (var item in allMsgs)
+            {
+                string msg = item.Msg;
+                if (item.FromId == ID)
                 {
-                    tcChat.Items.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
-                    tcChat.SelectedIndex = 0;
+                    var s = msg.Split(' ');
+                    s[1] = "Вы:";
+                    msg = "";
+                    foreach (var item1 in s)
+                    {
+                        msg += item1 + " ";
+                    }
                 }
-                if (tabItems.FirstOrDefault(x => x.Value == id).Key != null)
-                    tabItems.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
-                if(listBoxes.FirstOrDefault(x => x.Value == id).Key != null)
-                    listBoxes.Remove(listBoxes.FirstOrDefault(x => x.Value == id).Key);
-                if(textBoxes.FirstOrDefault(x => x.Value == id).Key != null)
-                    textBoxes.Remove(textBoxes.FirstOrDefault(x=>x.Value == id).Key);
-                listUsers.Remove(id);
-                
+                listBoxes.FirstOrDefault(x => x.Value == toID).Key.Items.Add(msg);
             }
         }
-
-         public void AllMsgsCallback(string[] allMsgs)
-         {
-
-          //  foreach(var tab in tabItems)
-          //  {
-          //      if(privateMessage.To == tabItems[item.Key] || privateMessage.From == tabItems[item.Key])
-
-          //      {
-          if(allMsgs.Length == 0) return;
-                    foreach (var item in allMsgs)
-                    {
-                        listBoxes.FirstOrDefault(x => x.Value == toID).Key.Items.Add(item);
-                    }
-         //       }
-          //  }
-
-         }
     }
 }

@@ -137,26 +137,15 @@ namespace Wcf_Chat
         {
             var user = users.FirstOrDefault(x => x.ID == id);
             user.Active = false;
-           // if (user != null)
-           // {
-           //     foreach (var item in users)
-           //     {
-           //         //item.operationContext = OperationContext.Current;
-           //         //item.operationContext.GetCallbackChannel<IServerChatCallback>().DisconnectCallback(id);
-           //
-           //     }
-           //     users.Remove(user);
-           // }
-
         }
 
         public void GetAllMsgs(int ToId, int fromId)
         {
-            List<string> listMessage = new List<string>();
+            List<PrivateMessage> listMessage = new List<PrivateMessage>();
             try
             {
                 sqlCommand = connection.CreateCommand();
-                sqlCommand.CommandText = "SELECT Msg FROM PrivateMessage1 WHERE ToId = @ToId AND FromId = @FromId OR ToId = @FromId AND FromId = @ToId ORDER BY DateTime ASC";
+                sqlCommand.CommandText = "SELECT * FROM PrivateMessage1 WHERE ToId = @ToId AND FromId = @FromId OR ToId = @FromId AND FromId = @ToId ORDER BY DateTime ASC";
                 sqlCommand.Parameters.AddWithValue("ToId", ToId);
                 sqlCommand.Parameters.AddWithValue("FromId", fromId);
                 sqlCommand.CommandType = System.Data.CommandType.Text;
@@ -165,7 +154,13 @@ namespace Wcf_Chat
                 SqlDataReader reader = sqlCommand.ExecuteReader();
                 while(reader.Read()) 
                 {
-                    listMessage.Add(reader[0].ToString());
+                    listMessage.Add(new PrivateMessage(reader[0].ToString())
+                    {
+                        FromId = Convert.ToInt32(reader[1]),
+                        ToId = Convert.ToInt32(reader[2]),
+                        Msg = reader[3].ToString(),
+                        dateTime = (DateTime)reader[4]
+                    });
                 }
 
                 users.FirstOrDefault(x => x.ID == fromId).operationContext.GetCallbackChannel<IServerChatCallback>().AllMsgsCallback(listMessage);
@@ -197,7 +192,6 @@ namespace Wcf_Chat
             }
             foreach (var item in users.Where(x => x.Active))
             {
-                //item.operationContext = OperationContext.Current;
                 item.operationContext.GetCallbackChannel<IServerChatCallback>().UsersCallback(names, listId);
             }
 
@@ -227,7 +221,6 @@ namespace Wcf_Chat
 
                 foreach (var item in users.Where(x => x.ID == privateMessage.FromId && x.Active || x.ID == privateMessage.ToId && x.Active))
                 {
-                    //item.operationContext = OperationContext.Current;
                     item.operationContext.GetCallbackChannel<IServerChatCallback>().MsgCallback(privateMessage);
                 }
 

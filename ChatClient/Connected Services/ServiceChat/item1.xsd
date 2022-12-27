@@ -10,4 +10,10 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="PrivateMessage" nillable="true" type="tns:PrivateMessage" />
+  <xs:complexType name="ArrayOfPrivateMessage">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PrivateMessage" nillable="true" type="tns:PrivateMessage" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfPrivateMessage" nillable="true" type="tns:ArrayOfPrivateMessage" />
 </xs:schema>
