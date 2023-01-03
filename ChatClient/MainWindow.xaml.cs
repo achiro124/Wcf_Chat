@@ -44,16 +44,24 @@ namespace ChatClient
         {
             foreach (var item in tabItems)
             {
-                if (item.Key.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
+               // if (item.Key.Header.ToString() == lbUsers.Items[lbUsers.SelectedIndex].ToString())
+               // {
+               //     tcChat.SelectedIndex = tabItems.ToList().IndexOf(item) + 1;
+
+               //     return;
+               // }
+
+                if(listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key == item.Value)
                 {
                     tcChat.SelectedIndex = tabItems.ToList().IndexOf(item) + 1;
-                  // lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-                  // lbUsers.SelectedIndex = -1;
-                  // lbUsers.SelectionChanged += lbUsers_SelectionChanged;
+                    ListBox msgBox = listBoxes.FirstOrDefault(x => x.Value == toID).Key;
+                    //msgBox.ScrollIntoView(msgBox.Items[msgBox.Items.Count - 1]);
                     return;
                 }
 
             }
+
+
             toID = listUsers.FirstOrDefault(x => x.Value == lbUsers.Items[lbUsers.SelectedIndex].ToString()).Key;
 
             ListBox chatbox = new ListBox();
@@ -105,15 +113,13 @@ namespace ChatClient
             };
             tabItems[tabItem] = toID;
             tcChat.Items.Add(tabItem);
-            tcChat.SelectedIndex = tcChat.Items.Count - 1;
+
+           // if(tcChat.SelectedIndex == 0)
+           //     tcChat.SelectedIndex = tcChat.Items.Count - 1;
 
 
             
             client.GetAllMsgs(toID, ID);
-
-            //  lbUsers.SelectionChanged -= lbUsers_SelectionChanged;
-            //  lbUsers.SelectedIndex = -1;
-            //  lbUsers.SelectionChanged += lbUsers_SelectionChanged;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -123,12 +129,22 @@ namespace ChatClient
 
         private void Click_Butt_CloseTabItem(object sender, RoutedEventArgs e)
         {
-          //  Button button= sender as Button;
-          //  int id = 0;
-          //  foreach(var bt in listButtons.Keys)
-          //  {
-          //
-          //  }
+            Button button= sender as Button;
+            if(button != null)
+            {
+                int id = listButtons[button];
+                if(tcChat.SelectedIndex != 0 && id == toID)
+                {
+                    tcChat.SelectedIndex = 0;
+                }
+                //tcChat.SelectedIndex = 0;
+                tcChat.Items.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
+
+                tabItems.Remove(tabItems.FirstOrDefault(x => x.Value == id).Key);
+                listBoxes.Remove(listBoxes.FirstOrDefault(x => x.Value == id).Key);
+                textBoxes.Remove(textBoxes.FirstOrDefault(x => x.Value == id).Key);
+                listButtons.Remove(listButtons.FirstOrDefault(x => x.Value == id).Key);
+            }
         }
 
         private void tbMessage_KeyDown(object sender, KeyEventArgs e)
@@ -177,6 +193,11 @@ namespace ChatClient
             {
                 if(privateMessage.ToId == tabItems[item.Key] || privateMessage.FromId == tabItems[item.Key])
                 {
+
+                    if(!listBoxes.FirstOrDefault(x => x.Value == privateMessage.ToId || x.Value == privateMessage.FromId).Key.Items.Contains(privateMessage.dateTime.ToLongDateString()))
+                    {
+                        listBoxes.FirstOrDefault(x => x.Value == privateMessage.ToId || x.Value == privateMessage.FromId).Key.Items.Add(privateMessage.dateTime.ToLongDateString());
+                    }
                     string msg = privateMessage.Msg;
                     if (privateMessage.FromId == ID)
                     {
@@ -189,7 +210,9 @@ namespace ChatClient
                         }
                     }
                     listBoxes.FirstOrDefault(x => x.Value == privateMessage.ToId || x.Value == privateMessage.FromId).Key.Items.Add(msg);
-                    break;
+                    ListBox msgBox = listBoxes.FirstOrDefault(x => x.Value == privateMessage.ToId || x.Value == privateMessage.FromId).Key;
+                    msgBox.ScrollIntoView(msgBox.Items[msgBox.Items.Count-1]);
+                    break;  
                 }
             }
         }
@@ -209,9 +232,11 @@ namespace ChatClient
         private void tcChat_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var item = sender as TabControl; 
-            if (item != null && item.SelectedIndex != 0) 
+            if (item != null && item.SelectedIndex > 0) 
             {
-                toID =  tabItems.Values.ToList()[item.SelectedIndex - 1];
+                toID = tabItems[(TabItem)tcChat.Items[tcChat.SelectedIndex]];
+               // ListBox msgBox = listBoxes.FirstOrDefault(x => x.Value == toID).Key;
+               // msgBox.ScrollIntoView(msgBox.Items[msgBox.Items.Count - 1]);
             }
              
         }
@@ -229,8 +254,17 @@ namespace ChatClient
             if (allMsgs.Length == 0)
                 return;
 
+            DateTime dateTime = new DateTime();
             foreach (var item in allMsgs)
             {
+                
+
+                if(dateTime.ToLongDateString() != item.dateTime.ToLongDateString())
+                {
+                    dateTime = item.dateTime;
+                    listBoxes.FirstOrDefault(x => x.Value == toID).Key.Items.Add(item.dateTime.ToLongDateString());
+                }
+                
                 string msg = item.Msg;
                 if (item.FromId == ID)
                 {
@@ -243,6 +277,8 @@ namespace ChatClient
                     }
                 }
                 listBoxes.FirstOrDefault(x => x.Value == toID).Key.Items.Add(msg);
+                ListBox msgBox = listBoxes.FirstOrDefault(x => x.Value == toID).Key;
+                msgBox.ScrollIntoView(msgBox.Items[msgBox.Items.Count - 1]);
             }
         }
     }

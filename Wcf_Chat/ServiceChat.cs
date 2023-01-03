@@ -1,4 +1,4 @@
-﻿using System;
+﻿        using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -203,7 +203,7 @@ namespace Wcf_Chat
             try
             {
                 sqlCommand = connection.CreateCommand();
-                string answer = DateTime.Now.ToShortTimeString() + " ";
+                string answer = DateTime.Now.ToLongTimeString() + " ";
                 answer += users.FirstOrDefault(x => x.ID == privateMessage.FromId).Login + ": ";
                 answer += privateMessage.Msg;
                 privateMessage.Msg = answer;
